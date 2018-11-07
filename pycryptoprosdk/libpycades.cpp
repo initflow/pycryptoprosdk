@@ -1,5 +1,4 @@
 #include <string.h>
-#include <string>
 #include <stdio.h>
 #include <WinCryptEx.h>
 #include <cades.h>
