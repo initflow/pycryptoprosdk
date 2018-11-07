@@ -179,6 +179,47 @@ extern "C" {
         return true;
     }
 
+    bool SignData(const char *input, char *value){
+        CRYPT_SIGN_MESSAGE_PARA signPara = { sizeof(signPara) };
+        signPara.dwMsgEncodingType = X509_ASN_ENCODING | PKCS_7_ASN_ENCODING;
+        signPara.pSigningCert = pContext; // 0 for window
+        signPara.HashAlgorithm.pszObjId = szOID_OIWSEC_sha1;
+
+        CADES_SIGN_PARA cadesSignPara = { sizeof(cadesSignPara) };
+        cadesSignPara.dwCadesType = CADES_BES;
+
+        CADES_SIGN_MESSAGE_PARA para = { sizeof(para) };
+        para.pSignMessagePara = &signPara;
+        para.pCadesSignPara = &cadesSignPara;
+
+        std::vector<BYTE> data(10,25);
+
+        const BYTE *pbToBeSigned[] = { &data[0] };
+        DWORD cbToBeSigned[] = { (DWORD)data.size() };
+
+        PCRYPT_DATA_BLOB pSignedMessage = 0;
+        if(!CadesSignMessage(&para,FALSE,1,pbToBeSigned,cbToBeSigned,
+            &pSignedMessage))
+        {
+            std::cout << "CadesSignMessage() failed" << std::endl;
+            return empty;
+        }
+
+        std::vector<BYTE> message(pSignedMessage->cbData);
+        std::copy(pSignedMessage->pbData,
+            pSignedMessage->pbData + pSignedMessage->cbData,message.begin());
+
+        if(!CadesFreeBlob(pSignedMessage))
+        {
+            std::cout << "CadesFreeBlob() failed" << std::endl;
+            return empty;
+        }
+
+        value = message
+
+        return true;
+    }
+
     bool GetCertBySubject(const char *storeName, const char *subject, CERTIFICATE_INFO &certInfo){
         HCERTSTORE hStoreHandle;
         PCCERT_CONTEXT pCertContext = NULL;
